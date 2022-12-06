@@ -36,6 +36,35 @@ func main() {
 
 	// Part 2
 	{
+		f, err := os.Open("day3/backpacks.txt")
+		//f, err := os.Open("day3/simple.txt")
+		if err != nil {
+			panic(err)
+		}
+
+		scanner := bufio.NewScanner(f)
+		sum := 0
+		e1, e2 := items{}, items{}
+		for elf := 0; scanner.Scan(); elf++ {
+			runes := []rune(scanner.Text())
+			for _, r := range runes {
+				switch elf % 3 {
+				case 0:
+					e1[r] = struct{}{}
+				case 1:
+					e2[r] = struct{}{}
+				case 2:
+					_, ok1 := e1[r]
+					_, ok2 := e2[r]
+					if ok1 && ok2 {
+						sum += runeToPriority(r)
+						e1, e2 = items{}, items{}
+						break
+					}
+				}
+			}
+		}
+		fmt.Println("sum:", sum)
 	}
 }
 
