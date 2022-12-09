@@ -20,7 +20,6 @@ type Dir struct {
 	children []*Dir
 	parent   *Dir
 	files    map[string]int
-	size     int
 }
 
 func (d *Dir) AddChild(name string) *Dir {
@@ -77,38 +76,45 @@ func (d *Dir) Tree() {
 }
 
 func (d *Dir) tree(indent int) {
-	fmt.Printf("%s- %s (Dir)\n", MakeIndent(indent), d.name)
+	fmt.Printf("%s- %s (Dir)\n", makeIndent(indent), d.name)
 	for _, c := range d.children {
 		c.tree(indent + 1)
 	}
 	for _, name := range d.getFileNames() {
-		fmt.Printf("%s- %s (file, size=%d)\n", MakeIndent(indent+1), name, d.files[name])
+		fmt.Printf("%s- %s (file, size=%d)\n", makeIndent(indent+1), name, d.files[name])
 	}
 }
 
-func (d *Dir) CalcSize() int {
+// GetDirSizes gets flattened dir sizes (note: must have run CalcSize first).
+// Also returns the total size of the current directory.
+// This needs to be separate as the slice will contain double-counted files.
+func (d *Dir) GetDirSizes() ([]*DirSize, int) {
 	size := 0
-	// Work out the easy stuff
-	for _, fileSize := range d.files {
-		size += fileSize
+	// Work out the size of this directory's files
+	for _, s := range d.files {
+		size += s
 	}
-	for _, c := range d.children {
-		size += c.CalcSize()
-	}
-	d.size = size
-	return size
-}
 
-// GetDirSizes gets flattened dir sizes (note: must have run CalcSize first)
-func (d *Dir) GetDirSizes() []*DirSize {
+	// Get the sizes of all this directory's children
 	var sizes []*DirSize
 	for _, c := range d.children {
-		sizes = append(sizes, c.GetDirSizes()...)
+		childSizes, childSize := c.GetDirSizes()
+		size += childSize
+		sizes = append(sizes, childSizes...)
 	}
-	return append(sizes, &DirSize{d.name, d.size})
+
+	return append(sizes, &DirSize{d.name, size}), size
 }
 
 type DirSize struct {
 	name string
 	size int
+}
+
+func makeIndent(levels int) string {
+	indent := ""
+	for i := 0; i < levels*2; i++ {
+		indent += " "
+	}
+	return indent
 }

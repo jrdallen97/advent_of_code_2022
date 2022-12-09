@@ -45,8 +45,7 @@ func main() {
 
 	root.Tree()
 
-	fmt.Println("root size:", root.CalcSize())
-	dirSizes := root.GetDirSizes()
+	dirSizes, _ := root.GetDirSizes()
 	sort.Slice(dirSizes, func(i, j int) bool {
 		return dirSizes[i].size < dirSizes[j].size
 	})
@@ -76,12 +75,4 @@ func changeDirectory(current *Dir, name string) *Dir {
 	} else {
 		return current.AddChild(name)
 	}
-}
-
-func MakeIndent(levels int) string {
-	indent := ""
-	for i := 0; i < levels*2; i++ {
-		indent += " "
-	}
-	return indent
 }
