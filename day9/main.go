@@ -72,19 +72,26 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(f)
-	head, tail := &Position{}, &Position{}
-	tailPositions := map[string]struct{}{}
+	knots := make([]*Position, 10)
+	for i := 0; i < len(knots); i++ {
+		knots[i] = &Position{}
+	}
+
+	part1 := map[string]struct{}{}
+	part2 := map[string]struct{}{}
 	for scanner.Scan() {
 		d, n := parse(scanner.Text())
-		fmt.Println("move:", d, n)
 		for i := 0; i < n; i++ {
-			head.Move(d)
-			tail.Follow(head)
-			tailPositions[tail.String()] = struct{}{}
-			fmt.Println(head, tail)
+			knots[0].Move(d)
+			for x := 1; x < len(knots); x++ {
+				knots[x].Follow(knots[x-1])
+			}
+			part1[knots[1].String()] = struct{}{}
+			part2[knots[9].String()] = struct{}{}
 		}
 	}
-	fmt.Println("tail positions:", len(tailPositions))
+	fmt.Println("part 1 tail positions:", len(part1))
+	fmt.Println("part 2 tail positions:", len(part2))
 }
 
 func parse(line string) (Direction, int) {
