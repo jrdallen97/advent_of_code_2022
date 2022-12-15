@@ -88,6 +88,7 @@ func main() {
 			}
 			part1[knots[1].String()] = struct{}{}
 			part2[knots[9].String()] = struct{}{}
+			// TODO: would be cool to print the rope positions as we go
 		}
 	}
 	fmt.Println("part 1 tail positions:", len(part1))
