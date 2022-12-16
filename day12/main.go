@@ -8,14 +8,14 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-type Direction int
-
-const (
-	Up Direction = iota
-	Down
-	Left
-	Right
-)
+//type Direction int
+//
+//const (
+//	Up Direction = iota
+//	Down
+//	Left
+//	Right
+//)
 
 func NewVisited(coords ...Coord) Visited {
 	v := Visited{}
@@ -43,8 +43,8 @@ func (v Visited) Contains(c Coord) bool {
 }
 
 func main() {
-	//f, err := os.Open("day12/map.txt")
-	f, err := os.Open("day12/simple.txt")
+	f, err := os.Open("day12/map.txt")
+	//f, err := os.Open("day12/simple.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -62,48 +62,23 @@ func main() {
 	fmt.Println("start:", start)
 	fmt.Println("end:", end)
 
-	//path := []Coord{start}
-	path := []Coord{
-		{0, 0},
-		{1, 0},
-		{2, 0},
-		{2, 1},
-		{1, 1},
-		{0, 1},
-		{0, 2},
-		{0, 3},
-		{0, 4},
-		{1, 4},
-		{1, 3},
-		{2, 3},
-		{2, 4},
-		{3, 4},
-		{4, 4},
-		{5, 4},
-		{6, 4},
-		{7, 4},
-		{7, 3},
-		{7, 2},
-		{7, 1},
-		{7, 0},
-		{6, 0},
-		{5, 0},
-		{4, 0},
-	}
-	// Should I just use the Set helpers for this?
-	possiblePaths := topo.Traverse(Coord{4, 0}, path)
+	path := []Coord{start}
+	possiblePaths := topo.Traverse(start, path)
 	fmt.Println("possible paths:", len(possiblePaths))
 
-	shortest := -1
-	best := 0
-	for i, path := range possiblePaths {
-		//fmt.Println(path)
-		if path[len(path)-1] == end && (len(path) < shortest || shortest == -1) {
-			shortest = len(path)
-			best = i
+	var bestPath []Coord
+	bestLength := -1
+	for _, path := range possiblePaths {
+		length := len(path)
+		if path[length-1] == end {
+			if length < bestLength || bestLength == -1 {
+				bestPath = path
+				bestLength = length
+			}
 		}
 	}
-	fmt.Println(possiblePaths[best])
+	fmt.Println(bestPath)
+	fmt.Println("steps:", bestLength-1)
 	fmt.Println("------")
 	//fmt.Println(len(bestPath))
 	//fmt.Println(bestPath)

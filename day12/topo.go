@@ -21,7 +21,7 @@ func (t Topo) Get(c Coord) rune {
 	return rune(t[c[1]][c[0]])
 }
 
-func (t Topo) isValidMove(c Coord, limit rune, v Visited) bool {
+func (t Topo) isValidMove(c Coord, current rune, v Visited) bool {
 	// Outside the topo
 	if !c.IsValidCoord() {
 		return false
@@ -31,33 +31,42 @@ func (t Topo) isValidMove(c Coord, limit rune, v Visited) bool {
 		//fmt.Println("preventing backtrack")
 		return false
 	}
-	val := t.Get(c)
-	// Handle the start case (target == S + 1)
-	if limit == 'T' {
-		return val == 'a'
+	next := t.Get(c)
+	// Handle the start & end cases differently
+	if current == 'S' {
+		return next == 'a'
 	}
-	return val <= limit
+	if next == 'E' {
+		return current == 'z'
+	}
+	return next <= current+1
 }
 
+var movesTried int
+
 func (t Topo) GetMoves(c Coord, v Visited) []Coord {
+	movesTried++
+	if movesTried%10_000 == 0 {
+		fmt.Println("moves tested:", movesTried)
+	}
+
 	// If we're at the end, stop
 	current := t.Get(c)
 	if current == 'E' {
 		return nil
 	}
 
-	limit := current + 1
 	var moves []Coord
-	if up := c.AddY(-1); t.isValidMove(up, limit, v) {
+	if up := c.AddY(-1); t.isValidMove(up, current, v) {
 		moves = append(moves, up)
 	}
-	if down := c.AddY(1); t.isValidMove(down, limit, v) {
+	if down := c.AddY(1); t.isValidMove(down, current, v) {
 		moves = append(moves, down)
 	}
-	if left := c.AddX(-1); t.isValidMove(left, limit, v) {
+	if left := c.AddX(-1); t.isValidMove(left, current, v) {
 		moves = append(moves, left)
 	}
-	if right := c.AddX(1); t.isValidMove(right, limit, v) {
+	if right := c.AddX(1); t.isValidMove(right, current, v) {
 		moves = append(moves, right)
 	}
 	return moves
@@ -75,10 +84,13 @@ func (t Topo) Traverse(start Coord, currentPath []Coord) [][]Coord {
 	// Otherwise, play out all possible moves and return all their possible outcomes
 	var paths [][]Coord
 	for _, move := range moves {
-		fmt.Println(currentPath)
 		// Next path seems to always be valid...
-		nextPath := append(currentPath, move)
-		fmt.Println(nextPath)
+		//nextPath := append(currentPath, move)
+
+		// Update: manually copying the array seems to fix it... Wtf?
+		nextPath := make([]Coord, len(currentPath)+1)
+		copy(nextPath, append(currentPath, move))
+
 		// But paths seems to contain garbage
 		paths = append(paths, t.Traverse(move, nextPath)...)
 	}
