@@ -28,6 +28,7 @@ func (t Topo) isValidMove(c Coord, limit rune, v Visited) bool {
 	}
 	// Backtracking
 	if v.Contains(c) {
+		//fmt.Println("preventing backtrack")
 		return false
 	}
 	val := t.Get(c)
@@ -38,32 +39,48 @@ func (t Topo) isValidMove(c Coord, limit rune, v Visited) bool {
 	return val <= limit
 }
 
-func (t Topo) GetMoves(c Coord, v Visited) map[Direction]Coord {
-	limit := t.Get(c) + 1
-	moves := map[Direction]Coord{}
+func (t Topo) GetMoves(c Coord, v Visited) []Coord {
+	// If we're at the end, stop
+	current := t.Get(c)
+	if current == 'E' {
+		return nil
+	}
+
+	limit := current + 1
+	var moves []Coord
 	if up := c.AddY(-1); t.isValidMove(up, limit, v) {
-		moves[Up] = up
+		moves = append(moves, up)
 	}
 	if down := c.AddY(1); t.isValidMove(down, limit, v) {
-		moves[Down] = down
+		moves = append(moves, down)
 	}
 	if left := c.AddX(-1); t.isValidMove(left, limit, v) {
-		moves[Left] = left
+		moves = append(moves, left)
 	}
 	if right := c.AddX(1); t.isValidMove(right, limit, v) {
-		moves[Right] = right
+		moves = append(moves, right)
 	}
 	return moves
 }
 
-func (t Topo) Traverse(start Coord, v Visited) {
-	// if E, end?
-	// else, traverse possible moves
-	// only return if you reach E?
+func (t Topo) Traverse(start Coord, currentPath []Coord) [][]Coord {
+	v := NewVisited(currentPath...)
 
-	// I'm thinking to make this recursive somehow?
 	moves := t.GetMoves(start, v)
-	for _, move := range moves {
-		fmt.Println("possible move:", move)
+	// If there are no moves left, this path is dead and should just return itself
+	if len(moves) == 0 {
+		return [][]Coord{currentPath}
 	}
+
+	// Otherwise, play out all possible moves and return all their possible outcomes
+	var paths [][]Coord
+	for _, move := range moves {
+		fmt.Println(currentPath)
+		// Next path seems to always be valid...
+		nextPath := append(currentPath, move)
+		fmt.Println(nextPath)
+		// But paths seems to contain garbage
+		paths = append(paths, t.Traverse(move, nextPath)...)
+	}
+	return paths
 }
