@@ -1,10 +1,11 @@
 module github.com/jrdallen97/advent_of_code_2022
 
-go 1.19
+go 1.18
 
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/stretchr/testify v1.8.1
+	golang.org/x/text v0.5.0
 )
 
 require (

@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"strings"
+
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 type Topo []string
@@ -43,20 +46,24 @@ func (t Topo) isValidMove(c Coord, current rune, v Visited) bool {
 }
 
 var movesTried int
+var p = message.NewPrinter(language.English)
 
 func (t Topo) GetMoves(c Coord, v Visited) []Coord {
 	movesTried++
-	if movesTried%10_000 == 0 {
-		fmt.Println("moves tested:", movesTried)
+	if movesTried%100_000 == 0 {
+		p.Printf("moves tested: %d\n", movesTried)
 	}
 
 	// If we're at the end, stop
 	current := t.Get(c)
-	if current == 'E' {
-		return nil
-	}
+	//if current == 'E' {
+	//	return nil
+	//}
 
 	var moves []Coord
+	if right := c.AddX(1); t.isValidMove(right, current, v) {
+		moves = append(moves, right)
+	}
 	if up := c.AddY(-1); t.isValidMove(up, current, v) {
 		moves = append(moves, up)
 	}
@@ -66,33 +73,48 @@ func (t Topo) GetMoves(c Coord, v Visited) []Coord {
 	if left := c.AddX(-1); t.isValidMove(left, current, v) {
 		moves = append(moves, left)
 	}
-	if right := c.AddX(1); t.isValidMove(right, current, v) {
-		moves = append(moves, right)
-	}
 	return moves
 }
 
-func (t Topo) Traverse(start Coord, currentPath []Coord) [][]Coord {
-	v := NewVisited(currentPath...)
+// Initialise best to something quite high to prevent pointless spinning
+var best = 100
 
+func (t Topo) Traverse(start Coord, path []Coord) []Coord {
+	fmt.Println("depth", len(path))
+	// If it's already longer than the best path, give up
+	if len(path) > best {
+		return nil
+	}
+
+	// If this path has reached the end, return it
+	if t.Get(start) == 'E' {
+		if len(path) < best {
+			best = len(path)
+		}
+		fmt.Println("found a path:", len(path))
+		return path
+	}
+
+	// Otherwise, get all possible moves from this coordinate
+	v := NewVisited(path...)
 	moves := t.GetMoves(start, v)
-	// If there are no moves left, this path is dead and should just return itself
+	// If there are no moves left, this path is dead and should just return nil
 	if len(moves) == 0 {
-		return [][]Coord{currentPath}
+		return nil
 	}
 
-	// Otherwise, play out all possible moves and return all their possible outcomes
-	var paths [][]Coord
+	// Otherwise, play out all possible moves and return the best winning outcome
+	var bestPath []Coord
 	for _, move := range moves {
-		// Next path seems to always be valid...
-		//nextPath := append(currentPath, move)
-
 		// Update: manually copying the array seems to fix it... Wtf?
-		nextPath := make([]Coord, len(currentPath)+1)
-		copy(nextPath, append(currentPath, move))
+		nextPath := make([]Coord, len(path)+1)
+		copy(nextPath, append(path, move))
 
-		// But paths seems to contain garbage
-		paths = append(paths, t.Traverse(move, nextPath)...)
+		if possiblePath := t.Traverse(move, nextPath); possiblePath != nil {
+			if len(bestPath) == 0 || len(possiblePath) < len(bestPath) {
+				bestPath = possiblePath
+			}
+		}
 	}
-	return paths
+	return bestPath
 }

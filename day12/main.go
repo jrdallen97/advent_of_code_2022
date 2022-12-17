@@ -63,22 +63,10 @@ func main() {
 	fmt.Println("end:", end)
 
 	path := []Coord{start}
-	possiblePaths := topo.Traverse(start, path)
-	fmt.Println("possible paths:", len(possiblePaths))
+	bestPath := topo.Traverse(start, path)
 
-	var bestPath []Coord
-	bestLength := -1
-	for _, path := range possiblePaths {
-		length := len(path)
-		if path[length-1] == end {
-			if length < bestLength || bestLength == -1 {
-				bestPath = path
-				bestLength = length
-			}
-		}
-	}
 	fmt.Println(bestPath)
-	fmt.Println("steps:", bestLength-1)
+	fmt.Println("steps:", len(bestPath)-1)
 	fmt.Println("------")
 	//fmt.Println(len(bestPath))
 	//fmt.Println(bestPath)
